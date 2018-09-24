@@ -12,7 +12,7 @@
 *.out
 
 .apikey
-
 .idea/
-
 CMCCLI.*
+!**/*.go
+
