@@ -14,5 +14,7 @@
 .apikey
 .idea/
 CMCCLI.*
+**/*
 !**/*.go
+!**/
 
