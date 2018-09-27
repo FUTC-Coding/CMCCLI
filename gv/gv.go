@@ -8,28 +8,6 @@ import (
 	"time"
 )
 
-type Api struct {
-	key string
-}
-
-var apikey string
-
-func (a *Api) SetApiKey(key string) {
-	//for debugging
-	fmt.Println("apikey is parameter: " + a.key)
-
-	a.key = key
-
-	//for debugging
-	fmt.Println("apikey has been set: " + a.key)
-
-}
-
-func (a Api) ApiKey() (string) {
-	fmt.Println("getting apikey: " + a.key)
-	return a.key
-}
-
 func check(e error) {
 	if e != nil {
 		panic(e)
@@ -39,11 +17,11 @@ func check(e error) {
 func readKey() (string){
 	dat, err := ioutil.ReadFile(".apikey")
 	check(err)
-	fmt.Print("read this from file: " + string(dat))
 	return string(dat)
 }
 
-func GetFromApi(directory string) {
+//give the part from the url after "/v1" as a parameter to this function and it will get the information from the api and return the raw json data
+func GetFromApi(directory string) ([]byte) {
 
 	const baseURL = "https://pro-api.coinmarketcap.com/v1"
 	url := fmt.Sprintf(baseURL + directory)
@@ -57,16 +35,15 @@ func GetFromApi(directory string) {
 		fmt.Printf("The HTTP request failed with error %s\n", err)
 	}
 
-	//for debugging
-	fmt.Println("requesting with apikey: " + readKey())
-
 	request.Header.Set("X-CMC_PRO_API_KEY", readKey())
 
 	response, err := cmcClient.Do(request)
 	if err != nil {
 		log.Fatal(err)
 	} else {
+		defer response.Body.Close()
 		data, _ := ioutil.ReadAll(response.Body)
-		fmt.Println(string(data))
+		return data
 	}
+	return nil
 }
