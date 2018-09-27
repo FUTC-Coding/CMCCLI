@@ -61,15 +61,15 @@ type Currency struct {
 // coinCmd represents the coin command
 var coinCmd = &cobra.Command{
 	Use:   "coin",
-	Short: "coin [symbol of coin] like BTC or ETH (must be caps)",
-	Long: `All cryptocurrencies have a symbol/short name like BTC or ETH for example. When giving this value to the coin command, the letters need to be all caps.`,
+	Short: "coin [symbol of coin] like BTC or ETH (upper or lowercase)",
+	Long: `All cryptocurrencies have a symbol/short name like BTC or ETH for example. When giving this value to the coin command`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Price: " + Price(args))
 	},
 }
 
 func Price(args []string) (string) {
-	resp := gv.GetFromApi("/cryptocurrency/quotes/latest?symbol=" + strings.Join(args, ""))
+	resp := gv.GetFromApi("/cryptocurrency/quotes/latest?symbol=" + strings.ToUpper(strings.Join(args, "")))
 	jsonParsed, err := gabs.ParseJSON(resp)
 	if err != nil {
 		log.Fatal(err)
@@ -78,6 +78,9 @@ func Price(args []string) (string) {
 	var price float64
 	var ok bool
 	symbol := strings.Join(args, "")
+	symbol = strings.ToUpper(symbol)
+	fmt.Println(symbol)
+
 	price, ok = jsonParsed.Search("data", symbol, "quote", "USD", "price").Data().(float64)
 	if ok {
 		return strconv.FormatFloat(price, 'f', -1, 64)
