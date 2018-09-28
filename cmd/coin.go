@@ -110,9 +110,12 @@ func AllData(args []string) {
 	fmt.Print("Circulating Supply: ")
 	color.Cyan(strconv.FormatFloat(c.CirculatingSupply, 'f', -1, 64))
 
+	//TODO find solution for currencies that dont have a max supply and return nil from the api
+	/*
 	c.MaxSupply = jsonParsed.Search("data", symbol, "max_supply").Data().(float64)
 	fmt.Print("Max. Supply: ")
 	color.Cyan(strconv.FormatFloat(c.MaxSupply, 'f', -1, 64))
+	*/
 }
 
 //this function checks if a float is positive or negative; it returns true if it is positive
