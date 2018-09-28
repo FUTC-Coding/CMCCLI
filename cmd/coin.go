@@ -96,7 +96,7 @@ func AllData(args []string) {
 	c.PercentChange7D = jsonParsed.Search("data", symbol, "quote", "USD", "percent_change_7d").Data().(float64)
 	x = strconv.FormatFloat(math.Round(c.PercentChange7D*1000000)/1000000, 'f', -1, 64) + "%"
 	fmt.Print("7d change: ")
-	if !Abs(c.PercentChange24H){
+	if !Abs(c.PercentChange7D) {
 		color.Red(x)
 	} else {
 		color.Green(x)
@@ -116,8 +116,8 @@ func AllData(args []string) {
 }
 
 //this function checks if a float is positive or negative; it returns true if it is positive
-func Abs(x float64) bool {
-	if x > 0 {
+func Abs(y float64) bool {
+	if y > 0 {
 		return true
 	}
 	return false
