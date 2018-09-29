@@ -30,11 +30,11 @@ var(
 // portCmd represents the port command
 var portCmd = &cobra.Command{
 	Use:   "port",
-	Short: "Just \"port\" to list your portfolio",
+	Short: "list your portfolio",
 	Long: `With just "port"" you can list your saved portfolio. With "port add [symbol of coin e.g. BTC]". With "port rm [BTC] you can remove it again from your portfolio"`,
 	TraverseChildren: true,
 	Run: func(cmd *cobra.Command, args []string) {
-		list()
+		listPort()
 	},
 }
 
@@ -50,7 +50,7 @@ var cmdAdd = &cobra.Command{
 	},
 }
 
-func list(){
+func listPort(){
 	if _, err := os.Stat(".portfolio"); !os.IsNotExist(err) { //if file already exists
 		// open portfolio file
 		f, err := os.Open(".portfolio")
