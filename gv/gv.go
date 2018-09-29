@@ -20,6 +20,7 @@ func readKey() (string){
 	return string(dat)
 }
 
+//TODO implement error checking for HTTP error codes
 //give the part from the url after "/v1" as a parameter to this function and it will get the information from the api and return the raw json data
 func GetFromApi(directory string) ([]byte) {
 
