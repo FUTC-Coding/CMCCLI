@@ -20,8 +20,10 @@ import (
 	"github.com/Jeffail/gabs"
 	"github.com/spf13/cobra"
 	"log"
+	"os"
 	"strconv"
 	"strings"
+	"text/tabwriter"
 )
 
 // listCmd represents the list command
@@ -30,12 +32,14 @@ var listCmd = &cobra.Command{
 	Short: "list [n]; n = number of currencies to list, default 100.",
 	Long: `To list a specific amount of currencies, use list [number]. The default number of currencies that are being listed, is 100`,
 	Run: func(cmd *cobra.Command, args []string) {
-		listCur(args)
+		listAll(args)
 	},
 }
 
-func listCur(args []string) {
+func listAll(args []string) {
 	a := strings.Join(args, "")
+
+
 
 	if len(args) == 0 { //if no args, list 100
 		resp := gv.GetFromApi("/cryptocurrency/listings/latest?start=1&limit=100&convert=USD")
@@ -44,12 +48,8 @@ func listCur(args []string) {
 			log.Fatal(err)
 		}
 
-		names, _ := jsonParsed.S("data").Children() //iterate through all currencies and output rank and name
-		for _, child := range names {
-			fmt.Print(child.Search("cmc_rank").Data().(float64))
-			fmt.Print(" ")
-			fmt.Println(child.Search("name").Data().(string))
-		}
+		list(jsonParsed)
+
 	} else if _, err := strconv.Atoi(a); err != nil { //check if args are numeric
 		fmt.Print("please enter a valid number")
 	} else { //list with given number
@@ -59,13 +59,25 @@ func listCur(args []string) {
 			log.Fatal(err)
 		}
 
-		names, _ := jsonParsed.S("data").Children() //iterate through all currencies and output rank and name
-		for _, child := range names {
-			fmt.Print(child.Search("cmc_rank").Data().(float64))
-			fmt.Print(" ")
-			fmt.Println(child.Search("name").Data().(string))
-		}
+		list(jsonParsed)
 	}
+}
+
+func list(jsonParsed *gabs.Container) {
+	w := new(tabwriter.Writer)
+	w.Init(os.Stdout, 0, 0, 0, ' ', tabwriter.Debug)
+	//red := color.New(color.FgRed)
+	fmt.Fprintln(w, "Rank\tName\tPrice (USD)")
+
+	names, _ := jsonParsed.S("data").Children() //iterate through all currencies and output rank and name
+	for _, child := range names {
+
+		rank := strconv.FormatFloat(child.Search("cmc_rank").Data().(float64), 'f', -1, 64)
+		name := child.Search("name").Data().(string)
+		price := strconv.FormatFloat(child.Search("quote", "USD", "price").Data().(float64), 'f', -1, 64)
+		fmt.Fprintln(w, rank + "\t" + name  + "\t" + price)
+	}
+	w.Flush()
 }
 
 func init() {
