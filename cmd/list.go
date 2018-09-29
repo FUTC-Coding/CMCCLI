@@ -16,22 +16,56 @@ package cmd
 
 import (
 	"CMCCLI/gv"
+	"fmt"
+	"github.com/Jeffail/gabs"
 	"github.com/spf13/cobra"
+	"log"
+	"strconv"
+	"strings"
 )
 
 // listCmd represents the list command
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "list [n]; n = number of currencies to list, default 100.",
+	Long: `To list a specific amount of currencies, use list [number]. The default number of currencies that are being listed, is 100`,
 	Run: func(cmd *cobra.Command, args []string) {
-		gv.GetFromApi("/cryptocurrency/listings/latest?start=1&limit=5000&convert=USD")
+		listCur(args)
 	},
+}
+
+func listCur(args []string) {
+	a := strings.Join(args, "")
+
+	if len(args) == 0 { //if no args, list 100
+		resp := gv.GetFromApi("/cryptocurrency/listings/latest?start=1&limit=100&convert=USD")
+		jsonParsed, err := gabs.ParseJSON(resp)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		names, _ := jsonParsed.S("data").Children() //iterate through all currencies and output rank and name
+		for _, child := range names {
+			fmt.Print(child.Search("cmc_rank").Data().(float64))
+			fmt.Print(" ")
+			fmt.Println(child.Search("name").Data().(string))
+		}
+	} else if _, err := strconv.Atoi(a); err != nil { //check if args are numeric
+		fmt.Print("please enter a valid number")
+	} else { //list with given number
+		resp := gv.GetFromApi("/cryptocurrency/listings/latest?start=1&limit=" + a + "&convert=USD")
+		jsonParsed, err := gabs.ParseJSON(resp)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		names, _ := jsonParsed.S("data").Children() //iterate through all currencies and output rank and name
+		for _, child := range names {
+			fmt.Print(child.Search("cmc_rank").Data().(float64))
+			fmt.Print(" ")
+			fmt.Println(child.Search("name").Data().(string))
+		}
+	}
 }
 
 func init() {
