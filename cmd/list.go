@@ -66,8 +66,8 @@ func listAll(args []string) {
 func list(jsonParsed *gabs.Container) {
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 0, 0, 0, ' ', tabwriter.Debug)
-	//red := color.New(color.FgRed)
-	fmt.Fprintln(w, "Rank\tName\tPrice (USD)")
+
+	fmt.Fprintln(w, "Rank\tName\tPrice (USD)\tMarket Cap\tCirculating Supply\tTotal Supply\tVolume 24h\tChange 1h\tChange 24h\tChange 7d")
 
 	names, _ := jsonParsed.S("data").Children() //iterate through all currencies and output rank and name
 	for _, child := range names {
@@ -75,7 +75,26 @@ func list(jsonParsed *gabs.Container) {
 		rank := strconv.FormatFloat(child.Search("cmc_rank").Data().(float64), 'f', -1, 64)
 		name := child.Search("name").Data().(string)
 		price := strconv.FormatFloat(child.Search("quote", "USD", "price").Data().(float64), 'f', -1, 64)
-		fmt.Fprintln(w, rank + "\t" + name  + "\t" + price)
+		marketcap := strconv.FormatFloat(child.Search("quote", "USD", "market_cap").Data().(float64),'f',-1,64)
+		circulating := strconv.FormatFloat(child.Search("circulating_supply").Data().(float64),'f',-1,64)
+		total := strconv.FormatFloat(child.Search("total_supply").Data().(float64),'f',-1,64)
+		volume24 := strconv.FormatFloat(child.Search("quote", "USD", "volume_24h").Data().(float64),'f',-1,64)
+		change1 := strconv.FormatFloat(child.Search("quote", "USD", "percent_change_1h").Data().(float64),'f',-1,64)
+		change24 := strconv.FormatFloat(child.Search("quote", "USD", "percent_change_24h").Data().(float64),'f',-1,64)
+		change7 := strconv.FormatFloat(child.Search("quote", "USD", "percent_change_7d").Data().(float64),'f',-1,64)
+
+		fmt.Fprint(w, rank)
+		fmt.Fprint(w, "\t")
+		fmt.Fprintf(w, name  + "\t")
+		fmt.Fprint(w, price + "\t")
+		fmt.Fprint(w, marketcap + "\t")
+		fmt.Fprint(w, circulating + "\t")
+		fmt.Fprint(w, total + "\t")
+		fmt.Fprint(w, volume24 + "\t")
+		fmt.Fprint(w, change1 + "\t")
+		fmt.Fprint(w, change24 + "\t")
+		fmt.Fprintln(w, change7 + "\t")
+
 	}
 	w.Flush()
 }
