@@ -3,7 +3,7 @@ CMCCLI stands for **C**oin **M**arket **C**ap **C**ommand **L**ine **I**nterface
 
 **Origin**: I started this project because I didn't have any knowledge of Go and wanted to learn it.
 
-CMCCLI is built with Go and uses [cobra](https://github.com/spf13/cobra) for handling command line inputs and [gabs](https://github.com/Jeffail/gabs) for handling dynamic json data. CMCCLI is also licensed under [GPLv3](/LICENSE.md)
+CMCCLI is built with Go and uses [cobra](https://github.com/spf13/cobra) for handling command line inputs, [gabs](https://github.com/Jeffail/gabs) for handling dynamic json data and [tablewriter](https://github.com/olekukonko/tablewriter) for displaying tables. CMCCLI is also licensed under [GPLv3](/LICENSE.md)
 
 As the name suggests, CMCCLI is based on the [coinmarketcap](https://coinmarketcap.com) API.
 The old public API will stop working on December 4th 2018. CMCCLI is built on the newly introduced [professional-api](https://pro.coinmarketcap.com) by coinmarketcap.
