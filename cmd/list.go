@@ -39,8 +39,6 @@ var listCmd = &cobra.Command{
 func listAll(args []string) {
 	a := strings.Join(args, "")
 
-
-
 	if len(args) == 0 { //if no args, list 100
 		resp := gv.GetFromApi("/cryptocurrency/listings/latest?start=1&limit=100&convert=USD")
 		jsonParsed, err := gabs.ParseJSON(resp)
@@ -65,16 +63,16 @@ func listAll(args []string) {
 
 func list(jsonParsed *gabs.Container) {
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Rank", "Name", "Price", "Marketcap", "Circulating supply", "Total supply", "Volume 24h", "Change 1h", "Change 24h", "Change 7d"})
+	table.SetHeader([]string{"Rank", "Name", "Price", "Marketcap", "Circulating supply", "Total supply", "Volume 24h", "Change 1h (%)", "Change 24h (%)", "Change 7d (%)"})
 	table.SetBorder(false)
 
 	var data [][]string
-
 	sliced := data
 
-	names, _ := jsonParsed.S("data").Children() //iterate through all currencies and output rank and name
-	for _, child := range names {
+	names, _ := jsonParsed.S("data").Children()
+	for _, child := range names { //iterate through all currencies and output rank and name
 
+		//get all data from the json and save in variables and convert to string for output
 		rank := strconv.FormatFloat(child.Search("cmc_rank").Data().(float64), 'f', -1, 64)
 		name := child.Search("name").Data().(string)
 		price := strconv.FormatFloat(child.Search("quote", "USD", "price").Data().(float64), 'f', -1, 64)
@@ -83,32 +81,35 @@ func list(jsonParsed *gabs.Container) {
 		total := strconv.FormatFloat(child.Search("total_supply").Data().(float64),'f',-1,64)
 		volume24 := strconv.FormatFloat(child.Search("quote", "USD", "volume_24h").Data().(float64),'f',-1,64)
 
+		//get the change rates but keep as float to check if they are positive or negative
 		change1 := child.Search("quote", "USD", "percent_change_1h").Data().(float64)
 		change24 := child.Search("quote", "USD", "percent_change_24h").Data().(float64)
 		change7 := child.Search("quote", "USD", "percent_change_7d").Data().(float64)
 
+		//convert change rates to string for output
 		change1s := strconv.FormatFloat(change1,'f',-1,64)
 		change24s := strconv.FormatFloat(change24,'f',-1,64)
 		change7s := strconv.FormatFloat(change7,'f',-1,64)
 		var a,b,c string
-		if !Abs(change1){
+		if !Abs(change1){ //if change 1h is positive make it green. If it's negative, make it red
 			a = "\033[31m" + change1s + "\033[0m"
 		} else {
 			a = "\033[32m" + change1s + "\033[0m"
 		}
 
-		if !Abs(change24){
+		if !Abs(change24){ //if change 24h is positive make it green. If it's negative, make it red
 			b = "\033[31m" + change24s + "\033[0m"
 		} else {
 			b = "\033[32m" + change24s + "\033[0m"
 		}
 
-		if !Abs(change7){
+		if !Abs(change7){ //if change 7d is positive make it green. If it's negative, make it red
 			c = "\033[31m" + change7s + "\033[0m"
 		} else {
 			c = "\033[32m" + change7s + "\033[0m"
 		}
 
+		//append to the output
 		sliced = append(sliced, []string{rank,name,price,marketcap,circulating,total,volume24,a,b,c})
 	}
 	table.SetHeaderColor(tablewriter.Colors{tablewriter.FgCyanColor},
@@ -120,7 +121,7 @@ func list(jsonParsed *gabs.Container) {
 		tablewriter.Colors{tablewriter.FgCyanColor},
 		tablewriter.Colors{tablewriter.FgCyanColor},
 		tablewriter.Colors{tablewriter.FgCyanColor},
-		tablewriter.Colors{tablewriter.FgCyanColor}) //set Header color to Cyan for all strings in the header
+		tablewriter.Colors{tablewriter.FgCyanColor}) //set Header color to cyan for all strings in the header
 
 	table.SetColumnColor(tablewriter.Colors{tablewriter.FgYellowColor},
 		tablewriter.Colors{},
@@ -131,9 +132,10 @@ func list(jsonParsed *gabs.Container) {
 		tablewriter.Colors{},
 		tablewriter.Colors{},
 		tablewriter.Colors{},
-		tablewriter.Colors{})
+		tablewriter.Colors{}) //set color of the rank column to yellow
+
 	table.AppendBulk(sliced)
-	table.Render()
+	table.Render() //actually output the table
 }
 
 func init() {
