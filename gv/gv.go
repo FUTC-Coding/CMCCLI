@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"time"
 )
@@ -40,6 +41,11 @@ func GetFromApi(directory string) ([]byte) {
 
 	response, err := cmcClient.Do(request)
 	if err != nil {
+		if v, ok := err.(*net.OpError); ok {
+			if v.Timeout() {
+				log.Fatal("Timeout reached")
+			}
+		}
 		log.Fatal(err)
 	} else {
 		defer response.Body.Close()

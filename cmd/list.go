@@ -18,12 +18,12 @@ import (
 	"CMCCLI/gv"
 	"fmt"
 	"github.com/Jeffail/gabs"
+	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 	"log"
 	"os"
 	"strconv"
 	"strings"
-	"text/tabwriter"
 )
 
 // listCmd represents the list command
@@ -64,10 +64,13 @@ func listAll(args []string) {
 }
 
 func list(jsonParsed *gabs.Container) {
-	w := new(tabwriter.Writer)
-	w.Init(os.Stdout, 0, 0, 0, ' ', tabwriter.Debug)
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"Rank", "Name", "Price", "Marketcap", "Circulating supply", "Total supply", "Volume 24h", "Change 1h", "Change 24h", "Change 7d"})
+	table.SetBorder(false)
 
-	fmt.Fprintln(w, "Rank\tName\tPrice (USD)\tMarket Cap\tCirculating Supply\tTotal Supply\tVolume 24h\tChange 1h\tChange 24h\tChange 7d")
+	var data [][]string
+
+	sliced := data
 
 	names, _ := jsonParsed.S("data").Children() //iterate through all currencies and output rank and name
 	for _, child := range names {
@@ -79,24 +82,58 @@ func list(jsonParsed *gabs.Container) {
 		circulating := strconv.FormatFloat(child.Search("circulating_supply").Data().(float64),'f',-1,64)
 		total := strconv.FormatFloat(child.Search("total_supply").Data().(float64),'f',-1,64)
 		volume24 := strconv.FormatFloat(child.Search("quote", "USD", "volume_24h").Data().(float64),'f',-1,64)
-		change1 := strconv.FormatFloat(child.Search("quote", "USD", "percent_change_1h").Data().(float64),'f',-1,64)
-		change24 := strconv.FormatFloat(child.Search("quote", "USD", "percent_change_24h").Data().(float64),'f',-1,64)
-		change7 := strconv.FormatFloat(child.Search("quote", "USD", "percent_change_7d").Data().(float64),'f',-1,64)
 
-		fmt.Fprint(w, rank)
-		fmt.Fprint(w, "\t")
-		fmt.Fprintf(w, name  + "\t")
-		fmt.Fprint(w, price + "\t")
-		fmt.Fprint(w, marketcap + "\t")
-		fmt.Fprint(w, circulating + "\t")
-		fmt.Fprint(w, total + "\t")
-		fmt.Fprint(w, volume24 + "\t")
-		fmt.Fprint(w, change1 + "\t")
-		fmt.Fprint(w, change24 + "\t")
-		fmt.Fprintln(w, change7 + "\t")
+		change1 := child.Search("quote", "USD", "percent_change_1h").Data().(float64)
+		change24 := child.Search("quote", "USD", "percent_change_24h").Data().(float64)
+		change7 := child.Search("quote", "USD", "percent_change_7d").Data().(float64)
 
+		change1s := strconv.FormatFloat(change1,'f',-1,64)
+		change24s := strconv.FormatFloat(change24,'f',-1,64)
+		change7s := strconv.FormatFloat(change7,'f',-1,64)
+		var a,b,c string
+		if !Abs(change1){
+			a = "\033[31m" + change1s + "\033[0m"
+		} else {
+			a = "\033[32m" + change1s + "\033[0m"
+		}
+
+		if !Abs(change24){
+			b = "\033[31m" + change24s + "\033[0m"
+		} else {
+			b = "\033[32m" + change24s + "\033[0m"
+		}
+
+		if !Abs(change7){
+			c = "\033[31m" + change7s + "\033[0m"
+		} else {
+			c = "\033[32m" + change7s + "\033[0m"
+		}
+
+		sliced = append(sliced, []string{rank,name,price,marketcap,circulating,total,volume24,a,b,c})
 	}
-	w.Flush()
+	table.SetHeaderColor(tablewriter.Colors{tablewriter.FgCyanColor},
+		tablewriter.Colors{tablewriter.FgCyanColor},
+		tablewriter.Colors{tablewriter.FgCyanColor},
+		tablewriter.Colors{tablewriter.FgCyanColor},
+		tablewriter.Colors{tablewriter.FgCyanColor},
+		tablewriter.Colors{tablewriter.FgCyanColor},
+		tablewriter.Colors{tablewriter.FgCyanColor},
+		tablewriter.Colors{tablewriter.FgCyanColor},
+		tablewriter.Colors{tablewriter.FgCyanColor},
+		tablewriter.Colors{tablewriter.FgCyanColor}) //set Header color to Cyan for all strings in the header
+
+	table.SetColumnColor(tablewriter.Colors{tablewriter.FgYellowColor},
+		tablewriter.Colors{},
+		tablewriter.Colors{},
+		tablewriter.Colors{},
+		tablewriter.Colors{},
+		tablewriter.Colors{},
+		tablewriter.Colors{},
+		tablewriter.Colors{},
+		tablewriter.Colors{},
+		tablewriter.Colors{})
+	table.AppendBulk(sliced)
+	table.Render()
 }
 
 func init() {
