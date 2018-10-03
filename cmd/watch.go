@@ -103,7 +103,6 @@ func add(symbol string) {
 
 func init() {
 	rootCmd.AddCommand(watchCmd)
-	cmdAdd.Flags().StringVarP(&symbol, "add", "a", "", "add a currency to the personal watchlist")
 	watchCmd.AddCommand(cmdAdd)
 	// Here you will define your flags and configuration settings.
 
