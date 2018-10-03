@@ -27,33 +27,33 @@ var(
 	symbol string
 )
 
-// portCmd represents the port command
-var portCmd = &cobra.Command{
-	Use:   "port",
-	Short: "list your portfolio",
-	Long: `With just "port"" you can list your saved portfolio. With "port add [symbol of coin e.g. BTC]". With "port rm [BTC] you can remove it again from your portfolio"`,
+// listCmd represents the port command
+var watchCmd = &cobra.Command{
+	Use:   "watch",
+	Short: "list your watched currencies",
+	Long: `With just "list" you can list your saved currencies. With "list add [symbol of coin e.g. BTC]". With "list rm [BTC] you can remove it again from your watchlist"`,
 	TraverseChildren: true,
 	Run: func(cmd *cobra.Command, args []string) {
-		listPort()
+		listWatched()
 	},
 }
 
 var cmdAdd = &cobra.Command{
 	Use:   "add [BTC]",
-	Short: "add a currency to the portfolio",
-	Long: `Add a currency to your personal portfolio by supplying the symbol of the currency, e.g. BTC.`,
+	Short: "add a currency to the watchlist",
+	Long: `Add a currency to your personal watchlist by supplying the symbol of the currency, e.g. BTC.`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		symbol := strings.Join(args, "")
 		add(symbol)
-		fmt.Println("added " + symbol + " to your portfolio")
+		fmt.Println("added " + symbol + " to your watchlist")
 	},
 }
 
-func listPort(){
-	if _, err := os.Stat(".portfolio"); !os.IsNotExist(err) { //if file already exists
+func listWatched(){
+	if _, err := os.Stat(".watchlist"); !os.IsNotExist(err) { //if file already exists
 		// open portfolio file
-		f, err := os.Open(".portfolio")
+		f, err := os.Open(".watchlist")
 		if err != nil {
 			panic(err)
 		}
@@ -64,7 +64,7 @@ func listPort(){
 			var sa []string
 			s := scanner.Text()
 			sa = strings.Split(s, "")
-			AllData(sa)
+			GetCoinData(sa)
 			fmt.Println()
 		}
 
@@ -72,15 +72,15 @@ func listPort(){
 			log.Fatal(err)
 		}
 	} else { //if file doesn't exist yet
-		fmt.Println("You first have to add something to your portfolio. Use \"port add [BTC] to add a currency to your portfolio\"")
+		fmt.Println("You first have to add something to your watchlist. Use \"watch add [BTC] to add a currency to your watchlist\"")
 	}
 }
 
 func add(symbol string) {
-	if _, err := os.Stat(".portfolio"); !os.IsNotExist(err) { //if file already exists
+	if _, err := os.Stat(".watchlist"); !os.IsNotExist(err) { //if file already exists
 
-		// open portfolio file
-		f, err := os.OpenFile(".portfolio", os.O_APPEND|os.O_WRONLY, 0644)
+		// open watchlist file
+		f, err := os.OpenFile(".watchlist", os.O_APPEND|os.O_WRONLY, 0644)
 		if err != nil {
 			panic(err)
 		}
@@ -92,7 +92,7 @@ func add(symbol string) {
 
 		w.Flush()
 	} else { //if file doesn't exist yet, create it and write to it
-		f, err := os.Create(".portfolio")
+		f, err := os.Create(".watchlist")
 		check(err)
 		defer f.Close()
 
@@ -102,9 +102,9 @@ func add(symbol string) {
 }
 
 func init() {
-	rootCmd.AddCommand(portCmd)
-	cmdAdd.Flags().StringVarP(&symbol, "add", "a", "", "add a currency to the personal portfolio")
-	portCmd.AddCommand(cmdAdd)
+	rootCmd.AddCommand(watchCmd)
+	cmdAdd.Flags().StringVarP(&symbol, "add", "a", "", "add a currency to the personal watchlist")
+	watchCmd.AddCommand(cmdAdd)
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
