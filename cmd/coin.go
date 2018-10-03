@@ -45,12 +45,11 @@ var coinCmd = &cobra.Command{
 	Short: "coin [symbol of coin] like BTC or ETH (upper or lowercase)",
 	Long: `All cryptocurrencies have a symbol/short name like BTC or ETH for example. When giving this value to the coin command`,
 	Run: func(cmd *cobra.Command, args []string) {
-		AllData(args)
+		GetCoinData(args)
 	},
 }
 
-func AllData(args []string) {
-	c := Currency{}
+func GetCoinData(args []string){
 	symbol := strings.Join(args, "")
 	symbol = strings.ToUpper(symbol)
 
@@ -59,6 +58,11 @@ func AllData(args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	OutputData(jsonParsed, symbol)
+}
+
+func OutputData(jsonParsed *gabs.Container, symbol string) {
+	c := Currency{}
 
 	c.Name = jsonParsed.Search("data", symbol, "name").Data().(string)
 	color.Magenta(c.Name)
