@@ -60,6 +60,19 @@ var cmdBuy = &cobra.Command{
 	},
 }
 
+var cmdRm = &cobra.Command{
+	Use:   "rm",
+	Short: "port rm [symbol]",
+	Long: ``,
+	Run: func(cmd *cobra.Command, args []string) {
+		if len(args) == 0 {
+			fmt.Println("please add the currency you want to remove, example: btc")
+			os.Exit(-3)
+		}
+		remove(strings.Join(args, ""))
+	},
+}
+
 func showPort(){
 	//parse portfolio.json file with gabs
 	jsonFile, err := gabs.ParseJSONFile("portfolio.json")
@@ -108,14 +121,6 @@ func getPricesFromApi(symbols []string) ([]float64) {
 		slice = append(slice, price)
 		i++
 	}
-	/*
-	//append the price of each currency that was fetched to a float64 array
-	children,_ := jsonParsed.Search("data","ADA","quote","USD").Children()
-	for _, child := range children{
-		slice = append(slice, child.Search("price").Data().(float64))
-		//for debugging
-		fmt.Println(slice)
-	}*/
 	return slice
 }
 
@@ -124,7 +129,6 @@ func calcProfits(amounts []float64, prices []float64) (float64){
 	a := len(amounts)
 	for i := 0 ; i < a; i++{
 		total = total + amounts[i] * prices[i]
-		fmt.Println(total)
 	}
 	return total
 }
@@ -135,43 +139,59 @@ func buy(symbol string, amount float64){
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		// overwrite file
-		f, err := os.Create("portfolio.json")
-		if err != nil {
-			panic(err)
-		}
-		defer f.Close()
-
 		jsonData.ArrayAppend(symbol, "symbol")
 		jsonData.ArrayAppend(amount, "amount")
-
-		fmt.Fprintln(f, jsonData.StringIndent("", "  "))
+		writePortFile(jsonData)
 	} else { //if file doesn't exist yet, create it and write to it
-		f, err := os.Create("portfolio.json")
-		if err != nil {
-			panic(err)
-		}
-		defer f.Close()
 		jsonObj := gabs.New()
 		jsonObj.Array("symbol")
 		jsonObj.Array("amount")
 		jsonObj.ArrayAppend(symbol ,"symbol")
 		jsonObj.ArrayAppend(amount ,"amount")
-		fmt.Fprintln(f, jsonObj.StringIndent("", "  "))
+		writePortFile(jsonObj)
+	}
+}
+
+func remove(symbol string) {
+	//parse portfolio.json file with gabs
+	jsonFile, err := gabs.ParseJSONFile("portfolio.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+	var index int
+
+	children,_ := jsonFile.S("symbol").Children()
+	for _, child := range children {
+		if child.Data().(string) == symbol {
+			jsonFile.ArrayRemove(index, "symbol")
+			jsonFile.ArrayRemove(index, "amount")
+			fmt.Println("removed " + symbol + " from your portfolio")
+			writePortFile(jsonFile)
+			os.Exit(-3)
+		} else {
+			index++
+		}
+	}
+	fmt.Println(symbol + " is not in your portfolio")
+}
+
+func writePortFile(jsonData *gabs.Container){
+	if _, err := os.Stat("portfolio.json"); os.IsNotExist(err) {
+		fmt.Println("file does not exist and cant be overwritten")
+		os.Exit(-3)
+	} else { //write file
+		f, err := os.Create("portfolio.json")
+		if err != nil {
+			panic(err)
+		}
+		defer f.Close()
+
+		fmt.Fprintln(f, jsonData.StringIndent("", "  "))
 	}
 }
 
 func init() {
 	rootCmd.AddCommand(portCmd)
 	portCmd.AddCommand(cmdBuy)
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// portCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// portCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	portCmd.AddCommand(cmdRm)
 }
