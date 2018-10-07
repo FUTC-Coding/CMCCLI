@@ -121,10 +121,10 @@ func getPricesFromApi(symbols []string) ([]float64) {
 
 func calcProfits(amounts []float64, prices []float64) (float64){
 	var total float64
-	for _,amount := range amounts{
-		for _,price := range prices{
-			total = total + amount * price
-		}
+	a := len(amounts)
+	for i := 0 ; i < a; i++{
+		total = total + amounts[i] * prices[i]
+		fmt.Println(total)
 	}
 	return total
 }
