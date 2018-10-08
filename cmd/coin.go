@@ -50,15 +50,21 @@ var coinCmd = &cobra.Command{
 }
 
 func GetCoinData(args []string){
-	symbol := strings.Join(args, "")
-	symbol = strings.ToUpper(symbol)
+	symbols := strings.Join(args, ",")
+	symbols = strings.ToUpper(symbols)
 
-	resp := gv.GetFromApi("/cryptocurrency/quotes/latest?symbol=" + symbol)
+	resp := gv.GetFromApi("/cryptocurrency/quotes/latest?symbol=" + symbols)
 	jsonParsed, err := gabs.ParseJSON(resp)
 	if err != nil {
 		log.Fatal(err)
 	}
-	OutputData(jsonParsed, symbol)
+
+	i := 0
+	children,_ := jsonParsed.S("data").Children()
+	for range children {
+		OutputData(jsonParsed, args[i])
+		i++
+	}
 }
 
 func OutputData(jsonParsed *gabs.Container, symbol string) {

@@ -165,8 +165,8 @@ func remove(symbol string) {
 		if child.Data().(string) == symbol {
 			jsonFile.ArrayRemove(index, "symbol")
 			jsonFile.ArrayRemove(index, "amount")
-			fmt.Println("removed " + symbol + " from your portfolio")
 			writePortFile(jsonFile)
+			fmt.Println("removed " + symbol + " from your portfolio")
 			os.Exit(-3)
 		} else {
 			index++
@@ -175,19 +175,14 @@ func remove(symbol string) {
 	fmt.Println(symbol + " is not in your portfolio")
 }
 
-func writePortFile(jsonData *gabs.Container){
-	if _, err := os.Stat("portfolio.json"); os.IsNotExist(err) {
-		fmt.Println("file does not exist and cant be overwritten")
-		os.Exit(-3)
-	} else { //write file
-		f, err := os.Create("portfolio.json")
-		if err != nil {
-			panic(err)
-		}
-		defer f.Close()
-
-		fmt.Fprintln(f, jsonData.StringIndent("", "  "))
+func writePortFile(jsonData *gabs.Container) {
+	f, err := os.Create("portfolio.json")
+	if err != nil {
+		panic(err)
 	}
+	defer f.Close()
+
+	fmt.Fprintln(f, jsonData.StringIndent("", "  "))
 }
 
 func init() {
