@@ -32,16 +32,34 @@ example:
 
 `CMCCLI list [n]` n = how many to list (default 100)
 
-**every 100 returned data points are 1 call credit (rounded up) so be careful to not list too many**
+**every 200 returned data points are 1 call credit (rounded up) so be careful to not list too many**
 
-### Portfolio command
+### Watch command
 
-`CMCCLI port add [symbol]`
+`CMCCLI watch add [symbol]`
 
 example:
 
-`CMCCLI port add BTC`
+`CMCCLI watch add BTC`
 
 then run:
 
-`CMCCLI port` to list all currencies you saved to your portfolio.
+`CMCCLI watch` to list all currencies you saved to your portfolio.
+
+
+
+###Portfolio command
+
+to add something to your portfolio:
+
+`CMCCLI port buy [symbol] [price]`
+
+`CMCCLI port buy btc 1`
+
+Output:
+
+`total portfolio worth: 6460.89410671 USD` 
+
+to remove something again:
+
+`CMCCLI port rm [symbol]`
