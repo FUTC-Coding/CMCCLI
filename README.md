@@ -46,9 +46,7 @@ then run:
 
 `CMCCLI watch` to list all currencies you saved to your portfolio.
 
-
-
-###Portfolio command
+### Portfolio command
 
 to add something to your portfolio:
 
