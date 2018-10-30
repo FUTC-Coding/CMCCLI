@@ -20,11 +20,21 @@ Once you have your API key, run:
 
 `CMCCLI setApiKey [your key]`
 
+### Setting conversion currency
+
+Set whatever fiat currency you want your prices converted to. [Here](https://pro.coinmarketcap.com/api/v1#section/Standards-and-Conventions) is a full list of fiat currencies you can choose.
+
+`CMCCLI setConversion [currency]`
+
+Example:
+
+`CMCCLI setConversion USD`
+
 ### Stats for a single currency
 
 `CMCCLI coin [symbol of currency]`
 
-example:
+Example:
 
 `CMCCLI coin btc`
 
