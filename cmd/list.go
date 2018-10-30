@@ -38,9 +38,9 @@ var listCmd = &cobra.Command{
 
 func listAll(args []string) {
 	a := strings.Join(args, "")
-
+	conversion := gv.ReadConversion()
 	if len(args) == 0 { //if no args, list 100
-		resp := gv.GetFromApi("/cryptocurrency/listings/latest?start=1&limit=100&convert=USD")
+		resp := gv.GetFromApi("/cryptocurrency/listings/latest?start=1&limit=100&convert=" + conversion)
 		jsonParsed, err := gabs.ParseJSON(resp)
 		if err != nil {
 			log.Fatal(err)
@@ -51,7 +51,7 @@ func listAll(args []string) {
 	} else if _, err := strconv.Atoi(a); err != nil { //check if args are numeric
 		fmt.Print("please enter a valid number")
 	} else { //list with given number
-		resp := gv.GetFromApi("/cryptocurrency/listings/latest?start=1&limit=" + a + "&convert=USD")
+		resp := gv.GetFromApi("/cryptocurrency/listings/latest?start=1&limit=" + a + "&convert=" + conversion)
 		jsonParsed, err := gabs.ParseJSON(resp)
 		if err != nil {
 			log.Fatal(err)
@@ -62,8 +62,12 @@ func listAll(args []string) {
 }
 
 func list(jsonParsed *gabs.Container) {
+	conversion := gv.ReadConversion()
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Rank", "Name", "Price", "Marketcap", "Circulating supply", "Total supply", "Volume 24h", "Change 1h (%)", "Change 24h (%)", "Change 7d (%)"})
+	price := "Price " + conversion
+	mc := "Marketcap  " + conversion
+	volume := "Volume 24h " + conversion
+	table.SetHeader([]string{"Rank", "Name", price, mc, "Circulating supply", "Total supply", volume, "Change 1h (%)", "Change 24h (%)", "Change 7d (%)"})
 	table.SetBorder(false)
 
 	var data [][]string
@@ -75,16 +79,16 @@ func list(jsonParsed *gabs.Container) {
 		//get all data from the json and save in variables and convert to string for output
 		rank := strconv.FormatFloat(child.Search("cmc_rank").Data().(float64), 'f', -1, 64)
 		name := child.Search("name").Data().(string)
-		price := strconv.FormatFloat(child.Search("quote", "USD", "price").Data().(float64), 'f', -1, 64)
-		marketcap := strconv.FormatFloat(child.Search("quote", "USD", "market_cap").Data().(float64),'f',-1,64)
+		price := strconv.FormatFloat(child.Search("quote", conversion, "price").Data().(float64), 'f', -1, 64)
+		marketcap := strconv.FormatFloat(child.Search("quote", conversion, "market_cap").Data().(float64),'f',-1,64)
 		circulating := strconv.FormatFloat(child.Search("circulating_supply").Data().(float64),'f',-1,64)
 		total := strconv.FormatFloat(child.Search("total_supply").Data().(float64),'f',-1,64)
-		volume24 := strconv.FormatFloat(child.Search("quote", "USD", "volume_24h").Data().(float64),'f',-1,64)
+		volume24 := strconv.FormatFloat(child.Search("quote", conversion, "volume_24h").Data().(float64),'f',-1,64)
 
 		//get the change rates but keep as float to check if they are positive or negative
-		change1 := child.Search("quote", "USD", "percent_change_1h").Data().(float64)
-		change24 := child.Search("quote", "USD", "percent_change_24h").Data().(float64)
-		change7 := child.Search("quote", "USD", "percent_change_7d").Data().(float64)
+		change1 := child.Search("quote", conversion, "percent_change_1h").Data().(float64)
+		change24 := child.Search("quote", conversion, "percent_change_24h").Data().(float64)
+		change7 := child.Search("quote", conversion, "percent_change_7d").Data().(float64)
 
 		//convert change rates to string for output
 		change1s := strconv.FormatFloat(change1,'f',-1,64)
@@ -140,14 +144,4 @@ func list(jsonParsed *gabs.Container) {
 
 func init() {
 	rootCmd.AddCommand(listCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// listCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// listCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

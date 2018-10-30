@@ -16,45 +16,47 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
 	"os"
 	"strings"
+
+	"github.com/spf13/cobra"
 )
 
-// setApiKeyCmd represents the setApiKey command
-var setApiKeyCmd = &cobra.Command{
-	Use:   "setApiKey \"[apikey]\"",
-	Short: "set the api key you can get from pro.coinmarketcap.com",
-	Long: `This program makes API calls to the coinmarketcap api in the background,
-to do this, it is necessary to have an API key. This API key is obtainable with a free account
-at pro.coinmarketcap.com`,
-	Args: cobra.MinimumNArgs(1),
+// setConversionCmd represents the setConversion command
+var setConversionCmd = &cobra.Command{
+	Use:   "setConversion",
+	Short: "set the (fiat) currency you want your data to be converted to",
+	Long: `A longer description that spans multiple lines and likely contains examples
+and usage of using your command. For example:
+
+Cobra is a CLI library for Go that empowers applications.
+This application is a tool to generate the needed files
+to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		writeKeyToFile(strings.Join(args,""))
+		writeConvToFile(strings.Join(args, ""))
 	},
 }
 
-func init() {
-	rootCmd.AddCommand(setApiKeyCmd)
+func writeConvToFile(key string) {
+	f, err := os.Create(".conversion")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+	key = strings.ToUpper(key)
+	fmt.Fprint(f, key)
+}
 
+func init() {
+	rootCmd.AddCommand(setConversionCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// setApiKeyCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// setConversionCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// setApiKeyCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-}
-
-func writeKeyToFile(key string) {
-	f, err := os.Create(".apikey")
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-
-	fmt.Fprint(f, key)
+	// setConversionCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

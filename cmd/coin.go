@@ -52,8 +52,9 @@ var coinCmd = &cobra.Command{
 func GetCoinData(args []string){
 	symbols := strings.Join(args, ",")
 	symbols = strings.ToUpper(symbols)
+	conversion := gv.ReadConversion()
 
-	resp := gv.GetFromApi("/cryptocurrency/quotes/latest?symbol=" + symbols)
+	resp := gv.GetFromApi("/cryptocurrency/quotes/latest?symbol=" + symbols + "&convert=" + conversion)
 	jsonParsed, err := gabs.ParseJSON(resp)
 	if err != nil {
 		log.Fatal(err)
@@ -62,13 +63,14 @@ func GetCoinData(args []string){
 	i := 0
 	children,_ := jsonParsed.S("data").Children()
 	for range children {
-		OutputData(jsonParsed, args[i])
+		OutputData(jsonParsed, args[i], conversion)
 		i++
 	}
 }
 
-func OutputData(jsonParsed *gabs.Container, symbol string) {
+func OutputData(jsonParsed *gabs.Container, symbol string, conversion string) {
 	c := Currency{}
+	symbol = strings.ToUpper(symbol)
 
 	c.Name = jsonParsed.Search("data", symbol, "name").Data().(string)
 	color.Magenta(c.Name)
@@ -77,15 +79,15 @@ func OutputData(jsonParsed *gabs.Container, symbol string) {
 	fmt.Print("Rank: ")
 	color.Yellow(strconv.FormatFloat(c.Rank, 'f', -1, 64))
 
-	c.Price = jsonParsed.Search("data", symbol, "quote", "USD", "price").Data().(float64)
+	c.Price = jsonParsed.Search("data", symbol, "quote", conversion, "price").Data().(float64)
 	fmt.Print("Price: ")
-	color.Cyan(strconv.FormatFloat(math.Round(c.Price*1000000)/1000000, 'f', -1, 64) + " USD") //print in color blue; convert the format to a string; round to 6 decimals after the comma
+	color.Cyan(strconv.FormatFloat(math.Round(c.Price*1000000)/1000000, 'f', -1, 64) + " " + conversion) //print in color blue; convert the format to a string; round to 6 decimals after the comma
 
-	c.Volume24H = jsonParsed.Search("data", symbol, "quote", "USD", "volume_24h").Data().(float64)
+	c.Volume24H = jsonParsed.Search("data", symbol, "quote", conversion, "volume_24h").Data().(float64)
 	fmt.Print("Volume 24h: ")
-	color.Cyan(strconv.FormatFloat(math.Round(c.Volume24H*1000000)/1000000, 'f', -1, 64) + " USD")
+	color.Cyan(strconv.FormatFloat(math.Round(c.Volume24H*1000000)/1000000, 'f', -1, 64) + " " + conversion)
 
-	c.PercentChange1H = jsonParsed.Search("data", symbol, "quote", "USD", "percent_change_1h").Data().(float64)
+	c.PercentChange1H = jsonParsed.Search("data", symbol, "quote", conversion, "percent_change_1h").Data().(float64)
 	x := strconv.FormatFloat(math.Round(c.PercentChange1H*1000000)/1000000, 'f', -1, 64) + "%"
 	fmt.Print("1h change: ")
 	if !Abs(c.PercentChange1H){
@@ -94,7 +96,7 @@ func OutputData(jsonParsed *gabs.Container, symbol string) {
 		color.Green(x)
 	}
 
-	c.PercentChange24H = jsonParsed.Search("data", symbol, "quote", "USD", "percent_change_24h").Data().(float64)
+	c.PercentChange24H = jsonParsed.Search("data", symbol, "quote", conversion, "percent_change_24h").Data().(float64)
 	x = strconv.FormatFloat(math.Round(c.PercentChange24H*1000000)/1000000, 'f', -1, 64) + "%"
 	fmt.Print("24h change: ")
 	if !Abs(c.PercentChange24H){
@@ -103,7 +105,7 @@ func OutputData(jsonParsed *gabs.Container, symbol string) {
 		color.Green(x)
 	}
 
-	c.PercentChange7D = jsonParsed.Search("data", symbol, "quote", "USD", "percent_change_7d").Data().(float64)
+	c.PercentChange7D = jsonParsed.Search("data", symbol, "quote", conversion, "percent_change_7d").Data().(float64)
 	x = strconv.FormatFloat(math.Round(c.PercentChange7D*1000000)/1000000, 'f', -1, 64) + "%"
 	fmt.Print("7d change: ")
 	if !Abs(c.PercentChange7D) {
@@ -112,9 +114,9 @@ func OutputData(jsonParsed *gabs.Container, symbol string) {
 		color.Green(x)
 	}
 
-	c.MarketCap = jsonParsed.Search("data", symbol, "quote", "USD", "market_cap").Data().(float64)
+	c.MarketCap = jsonParsed.Search("data", symbol, "quote", conversion, "market_cap").Data().(float64)
 	fmt.Print("Market Cap: ")
-	color.Cyan(strconv.FormatFloat(math.Round(c.MarketCap*1000000)/1000000, 'f', -1, 64) + " USD")
+	color.Cyan(strconv.FormatFloat(math.Round(c.MarketCap*1000000)/1000000, 'f', -1, 64) + " " + conversion)
 
 	c.CirculatingSupply = jsonParsed.Search("data", symbol, "circulating_supply").Data().(float64)
 	fmt.Print("Circulating Supply: ")

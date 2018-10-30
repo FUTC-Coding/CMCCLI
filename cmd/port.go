@@ -77,7 +77,7 @@ func showPort(){
 	//parse portfolio.json file with gabs
 	jsonFile, err := gabs.ParseJSONFile("portfolio.json")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("you haven't added anything to your portfolio yet, use port buy [symbol] [amount]")
 	}
 
 	var sym []string
@@ -99,14 +99,17 @@ func showPort(){
 	prices := getPricesFromApi(slice)
 	//calculate total worth of portfolio with array of amount and array of price
 	total := calcProfits(sliced, prices)
-	color.Cyan("total portfolio worth: " + strconv.FormatFloat(total, 'f', -1, 64) + " USD")
+	conversion := gv.ReadConversion()
+	color.Cyan("total portfolio worth: " + strconv.FormatFloat(total, 'f', -1, 64) + " " + conversion)
 }
 
 
 func getPricesFromApi(symbols []string) ([]float64) {
 	s := strings.Join(symbols, ",")
+
+	conversion := gv.ReadConversion()
 	//get and parse the json data from the api
-	resp := gv.GetFromApi("/cryptocurrency/quotes/latest?symbol=" + s)
+	resp := gv.GetFromApi("/cryptocurrency/quotes/latest?symbol=" + s + "&convert=" + conversion)
 	jsonParsed, err := gabs.ParseJSON(resp)
 	if err != nil {
 		log.Fatal(err)
@@ -117,7 +120,7 @@ func getPricesFromApi(symbols []string) ([]float64) {
 	i := 0
 	//append the price of each currency that was fetched to a float64 array
 	for range symbols {
-		price,_ := jsonParsed.S("data", symbols[i], "quote", "USD","price").Data().(float64)
+		price,_ := jsonParsed.S("data", symbols[i], "quote", conversion,"price").Data().(float64)
 		slice = append(slice, price)
 		i++
 	}
